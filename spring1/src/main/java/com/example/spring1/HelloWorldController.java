@@ -58,7 +58,7 @@ public class HelloWorldController {
 
     }
 
-    @PostMapping("/level3/{unixTimePath}")
+    @PostMapping({"/{unixTimePath}", ""})
     public ResponseEntity<String> getYearsAndDays2(
             @PathVariable(value = "unixTimePath", required = false) Long unixTimePath,
             @RequestParam(required = false) Long unixTimeParam,
@@ -66,30 +66,28 @@ public class HelloWorldController {
             @RequestBody(required = false) Long unixBody
     ) {
         try {
-            validate(unixTimePath);
-            Instant instant = Instant.ofEpochSecond(unixTimePath);
+            long unix = 0;
 
-            if (unixTimeParam != null) {
-                validate(unixTimeParam);
-                instant = Instant.ofEpochSecond(unixTimeParam);
+            if (unixTimePath != null) {
+                unix = unixTimePath;
+            } else if (unixTimeParam != null) {
+                unix = unixTimeParam;
+            } else if (unixHeader != null) {
+                unix = unixHeader;
+            } else if (unixBody != null) {
+                unix = unixBody;
             }
-            if (unixHeader != null) {
-                validate(unixHeader);
-                instant = Instant.ofEpochSecond(unixHeader);
-            }
-            if (unixBody != null) {
-                validate(unixBody);
-                instant = Instant.ofEpochSecond(unixBody);
-            }
+            Instant instant = Instant.ofEpochSecond(unix);
+            validate(unix);
             LocalDate date = LocalDate.ofInstant(instant, ZoneId.of("UTC"));
             return ResponseEntity.ok("Years: " + (LocalDate.now().getYear() - date.getYear()) + "\n"
                     + "Days: " + ChronoUnit.DAYS.between(date, LocalDate.now()));
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping("/level4")
+        @GetMapping("/level4")
     public ResponseEntity<String> convertToDate(@RequestParam("stringTime") String str) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
